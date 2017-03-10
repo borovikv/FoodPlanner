@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from FoodPlanner import settings
+import django.views.static as static
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}),
 ]
