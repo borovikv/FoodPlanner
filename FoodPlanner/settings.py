@@ -25,7 +25,7 @@ SECRET_KEY = '7*ewx7lf0&xlk)cgkt*+eq)6xpi07p(xb24%cmg!byv$^kehi5'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['vborovic-food-planner.herokuapp.com']
+ALLOWED_HOSTS = ['vborovic-food-planner.herokuapp.com', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'food',
 ]
 
 MIDDLEWARE = [
