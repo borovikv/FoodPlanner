@@ -50,7 +50,13 @@ class Nutrient(models.Model):
 
 
 class Dish(models.Model):
+    OPTIONS = (
+        'drink',
+        'snack',
+        'food'
+    )
     title = models.CharField(max_length=128)
+    category = models.CharField(max_length=32, choices=[(e, e) for e in OPTIONS])
     description = models.TextField()
     preparation = models.TextField()
     owner = models.ForeignKey(User)
