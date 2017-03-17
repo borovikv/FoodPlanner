@@ -6,7 +6,6 @@ from django.db import models
 
 class Unit(models.Model):
     title = models.CharField(max_length=25)
-    grams = models.FloatField()
 
     def __str__(self):
         return self.title
@@ -78,8 +77,7 @@ class Dish(models.Model):
 class Ingredient(models.Model):
     title = models.CharField(max_length=128)
     amount = models.FloatField(null=True, blank=True)
-    unit = models.ForeignKey(Unit, null=True, blank=True)
-    calories_per_unit = models.FloatField(default=0)
+    calories_per_100_gr = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -142,3 +140,12 @@ class Plan(models.Model):
 
     def __str__(self):
         return self.goal
+
+
+class GrammsOfIngredientPerUnit(models.Model):
+    ingredient = models.ForeignKey(Ingredient)
+    unit = models.ForeignKey(Unit)
+    grams = models.FloatField()
+
+    def __str__(self):
+        return '{unit} of {ingredient} = {grams}'.format(ingredient=self.ingredient, unit=self.unit_id, grams=self.grams)
