@@ -6,6 +6,9 @@ class Unit(models.Model):
     title = models.CharField(max_length=25)
     grams = models.FloatField()
 
+    def __str__(self):
+        return self.title
+
 
 class Nutrient(models.Model):
     OPTIONS = (
@@ -46,7 +49,10 @@ class Nutrient(models.Model):
     )
     title = models.CharField(max_length=128, choices=[(e, e) for e in OPTIONS])
     dri = models.FloatField()
-    unit = models.ForeignKey(Unit)
+    dri_unit = models.ForeignKey(Unit)
+
+    def __str__(self):
+        return self.title
 
 
 class Dish(models.Model):
@@ -63,15 +69,30 @@ class Dish(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.title
+
 
 class Ingredient(models.Model):
     title = models.CharField(max_length=128)
     amount = models.FloatField(null=True, blank=True)
     unit = models.ForeignKey(Unit, null=True, blank=True)
     calories_per_unit = models.FloatField(default=0)
-    nutrients_per_unit = models.ManyToManyField(Nutrient, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class IngredientNutrient(models.Model):
+    ingredient = models.ForeignKey(Ingredient)
+    nutrient = models.ForeignKey(Nutrient)
+    ammount = models.FloatField(null=True, blank=True)
+    unit = models.ForeignKey(Unit)
+
+    def __str__(self):
+        return str(self.nutrient)
 
 
 class DishIngredient(models.Model):
@@ -81,6 +102,9 @@ class DishIngredient(models.Model):
     units = models.ForeignKey(Unit, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str(self.ingredient)
 
 
 class Meal(models.Model):
@@ -94,9 +118,15 @@ class Meal(models.Model):
     type = models.CharField(max_length=128, choices=[(e, e) for e in OPTIONS])
     dishes = models.ManyToManyField(Dish)
 
+    def __str__(self):
+        return self.type
+
 
 class DayPlan(models.Model):
     meals = models.ManyToManyField(Meal)
+
+    def __str__(self):
+        return self.pk
 
 
 class Plan(models.Model):
@@ -107,3 +137,6 @@ class Plan(models.Model):
     estimate_protein_per_day = models.PositiveIntegerField()
     estimate_fat_per_day = models.PositiveIntegerField()
     estimate_carbohydrate_per_day = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.goal
