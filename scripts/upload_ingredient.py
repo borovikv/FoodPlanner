@@ -3,9 +3,9 @@ import re
 
 import food.models as food
 
-path = '~/Downloads/пищевая ценность продуктов - Лист1.csv'
+path = '/Users/vborovic/Downloads/пищевая ценность продуктов - Лист1.csv'
 
-gr = food.Unit.objects.get_or_create(title='gramm', grams=1.0)
+gr = food.Unit.objects.get_or_create(title='gramm', grams=1.0)[0]
 
 
 def get_title(key):
@@ -17,7 +17,7 @@ def get_unit(key):
     if title == 'г':
         return gr
     if title == 'мг':
-        return food.Unit.objects.get_or_create(title='mg', grams=0.001)
+        return food.Unit.objects.get_or_create(title='mg', grams=0.001)[0]
 
 
 def main():
@@ -28,17 +28,27 @@ def main():
             ingredient.title = row['Продукты']
             ingredient.amount = 100.0
             ingredient.unit = gr
-            ingredient.calories_per_unit = row['Энерго-ценность, ккал']
+            ingredient.calories_per_unit = get_float(row, 'Энерго-ценность, ккал') or 17.0
+            ingredient.save()
             for key in row:
                 if key in ['Энерго-ценность, ккал', 'Продукты']:
                     continue
                 title = get_title(key)
-                nutrient = food.Nutrient.filter(title=title).first()
+                nutrient = food.Nutrient.objects.filter(title=title).first()
                 if not nutrient:
                     nutrient = food.Nutrient()
                     nutrient.title = title
                     nutrient.dri = 0
-                    nutrient.unit = get_unit(key)
+                    nutrient.dri_unit = get_unit(key)
                     nutrient.save()
-                ingredient.nutrients_per_unit.add(nutrient)
-            ingredient.save()
+                food.IngredientNutrient.objects.create(ingredient=ingredient, nutrient=nutrient, ammount=get_float(row, key), unit=get_unit(key))
+
+
+def get_float(row, t):
+    try:
+        return float(row[t].replace(',', '.'))
+    except:
+        return None
+
+
+main()
