@@ -1,13 +1,12 @@
 from ajax_select.helpers import make_ajax_form
 from django.contrib import admin
+from django.db import models
+from markdownx.widgets import AdminMarkdownxWidget
 
 import food.models as food
 
-models = (
-    food.Unit,
-    food.Nutrient,
-)
-for m in models:
+
+for m in (food.Unit, food.Nutrient, ):
     admin.site.register(m)
 
 
@@ -24,6 +23,10 @@ class DishAdmin(admin.ModelAdmin):
     inlines = [
         DishIngredientAdmin
     ]
+
+    formfield_overrides = {
+        models.TextField: {'widget': AdminMarkdownxWidget},
+    }
 
 
 @admin.register(food.Meal)

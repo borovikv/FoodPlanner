@@ -1,3 +1,5 @@
+import markdownx.models as markdown
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -64,7 +66,7 @@ class Dish(models.Model):
     title = models.CharField(max_length=128)
     category = models.CharField(max_length=32, choices=[(e, e) for e in OPTIONS])
     description = models.TextField()
-    preparation = models.TextField()
+    preparation = markdown.MarkdownxField()
     owner = models.ForeignKey(User)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
