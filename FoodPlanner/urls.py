@@ -13,12 +13,14 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib import admin
 from FoodPlanner import settings
 import django.views.static as static
+from ajax_select import urls as ajax_select_urls
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^ajax_select/', include(ajax_select_urls)),
     url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}),
 ]
