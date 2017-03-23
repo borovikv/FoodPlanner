@@ -24,4 +24,7 @@ urlpatterns = [
     url(r'^ajax_select/', include(ajax_select_urls)),
     url(r'^markdownx/', include('markdownx.urls')),
     url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}),
+    url(r'^food/', include('food.urls')),
 ]
+
+

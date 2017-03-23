@@ -6,7 +6,7 @@ from markdownx.widgets import AdminMarkdownxWidget
 import food.models as food
 
 
-for m in (food.Unit, food.Nutrient, ):
+for m in (food.Unit, food.Nutrient, food.Meal):
     admin.site.register(m)
 
 
@@ -28,28 +28,19 @@ class DishAdmin(admin.ModelAdmin):
         models.TextField: {'widget': AdminMarkdownxWidget},
     }
 
-
-@admin.register(food.Meal)
-class MealAdmin(admin.ModelAdmin):
-    filter_horizontal = ['dishes']
-
-
-@admin.register(food.DayPlan)
-class DayPlanAdmin(admin.ModelAdmin):
-    filter_horizontal = ['meals']
-
-
-@admin.register(food.Plan)
-class PlanAdmin(admin.ModelAdmin):
-    filter_horizontal = ['day_plans']
+    filter_horizontal = ('meals', )
 
 
 class IngredientNutrientAdmin(admin.TabularInline):
     model = food.IngredientNutrient
-    readonly_fields = list(filter(lambda n: n != 'id', map(lambda f: f.name, food.IngredientNutrient._meta.get_fields())))
+    extra = 0
+
+class GrammsOfIngredientPerUnitInlineAdmin(admin.TabularInline):
+    model = food.GrammsOfIngredientPerUnit
     extra = 0
 
 
 @admin.register(food.Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    inlines = [IngredientNutrientAdmin]
+    inlines = [IngredientNutrientAdmin, GrammsOfIngredientPerUnitInlineAdmin]
+    search_fields = ['title']

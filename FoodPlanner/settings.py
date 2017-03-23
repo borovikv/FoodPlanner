@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'ajax_select',
     'markdownx',
 
+    'utils',
+
     'food',
 ]
 
@@ -58,7 +60,7 @@ ROOT_URLCONF = 'FoodPlanner.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
