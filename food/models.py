@@ -98,12 +98,17 @@ class Nutrient(models.Model):
 
 
 class Meal(models.Model):
+    BREAKFAST = 'BREAKFAST'
+    LUNCH = 'LUNCH'
+    DINNER = 'DINNER'
+    SUPPER = 'SUPPER'
+    SNACK = 'SNACK'
     OPTIONS = (
-        'Breakfast',
-        'Lunch',
-        'Dinner',
-        'Supper',
-        'Snack'
+        BREAKFAST,
+        LUNCH,
+        DINNER,
+        SUPPER,
+        SNACK,
     )
     title = models.CharField(max_length=128, choices=[(e, e) for e in OPTIONS])
 
