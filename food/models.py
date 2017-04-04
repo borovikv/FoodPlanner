@@ -143,9 +143,10 @@ class Dish(models.Model):
     def __str__(self):
         return self.title
 
-    def nutrients(self) -> Dict[Nutrient, float]:
+    def nutrients(self, fraction: int=1) -> Dict[Nutrient, float]:
         """
-        :return: dict[nutrient] = NutrientAmount
+        :param fraction: part of portion. For example half/two portion of some dish
+        :return: amount of nutrients per dish
         """
         nutrients_to_amount_per_unit = defaultdict(float)
         for dish_ingredient in self.ingredients.all():
@@ -154,7 +155,7 @@ class Dish(models.Model):
                 if not nutrient.amount_per_100_gr:
                     continue
 
-                nutrients_to_amount_per_unit[nutrient.nutrient] += ingredient_quantity * nutrient.amount_per_100_gr
+                nutrients_to_amount_per_unit[nutrient.nutrient] += ingredient_quantity * fraction * nutrient.amount_per_100_gr
 
         return dict(nutrients_to_amount_per_unit)
 
@@ -209,11 +210,11 @@ class DishIngredient(models.Model):
         return self.convert_to_grams() / 100.0
 
     def convert_to_grams(self):
-        c = GrammsOfIngredientPerUnit.objects.filter(ingredient=self.ingredient, unit=self.unit).first()
+        c = GramsOfIngredientPerUnit.objects.filter(ingredient=self.ingredient, unit=self.unit).first()
         return c.convert(self.amount)
 
 
-class GrammsOfIngredientPerUnit(models.Model):
+class GramsOfIngredientPerUnit(models.Model):
     ingredient = models.ForeignKey(Ingredient, related_name='grams_per_unit_of_ingredient')
     unit = models.ForeignKey(Unit)
     grams = models.FloatField()
@@ -229,3 +230,29 @@ class GrammsOfIngredientPerUnit(models.Model):
         :return: grams
         """
         return self.grams * amount
+
+
+class GenericDish(models.Model):
+    title = models.CharField(max_length=128, null=True, blank=True)
+    dish = models.ForeignKey(Dish, null=True, blank=True)
+
+    def __str__(self):
+        return self.dish and str(self.dish) or self.title
+
+    def nutrients(self, grams=None, fraction=None) -> Dict[Nutrient, float]:
+        if self.dish:
+            return self.dish.nutrients(fraction or 1)
+        else:
+            result = {}
+            quantity = float(grams or 100) / 100
+            for dish_nutrient in self.dish_nutrients.all():
+                result[dish_nutrient.nutrient] = dish_nutrient.amount_per_100_gr * quantity
+
+
+class GenericDishNutrient(models.Model):
+    dish = models.ForeignKey(GenericDish, related_name='dish_nutrients')
+    nutrient = models.ForeignKey(Nutrient)
+    amount_per_100_gr = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return str(self.nutrient)

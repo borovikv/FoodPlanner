@@ -80,10 +80,9 @@ class DietPlan(models.Model):
         result = defaultdict(float)
         total_days = len(days)
         for day in days:
-            for dish in day.dishes.all():
-                dish_nutrients = dish.nutrients()
-                for nutrient in dish_nutrients:
-                    result[nutrient] += dish_nutrients[nutrient] / float(total_days)
+            nutrients = day.nutrients()
+            for nutrient in nutrients:
+                result[nutrient] += nutrients[nutrient] / float(total_days)
 
         return result
 
@@ -110,5 +109,37 @@ class DayPlan(models.Model):
     def __str__(self):
         return '{plan} #{order}'.format(plan=self.plan, order=self.day)
 
+    def nutrients(self):
+        result = defaultdict(float)
+        for dish in self.dishes.all():
+            dish_nutrients = dish.nutrients()
+            for nutrient in dish_nutrients:
+                result[nutrient] += dish_nutrients[nutrient]
+        return dict(result)
+
     class Meta:
         ordering = ['day']
+
+
+class DishLog(models.Model):
+    user = models.ForeignKey(User)
+    plan = models.ForeignKey(DietPlan)
+    day = models.DateField()
+    dish = models.ForeignKey(food.GenericDish)
+    grams = models.PositiveIntegerField(null=True, blank=True)
+    fraction = models.PositiveIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @staticmethod
+    def analyze(plan: DietPlan, start: datetime, stop: datetime = None):
+        if not stop:
+            stop = datetime.datetime.now()
+
+        result = defaultdict(float)
+        logs = DishLog.objects.filter(plan=plan, day__gte=start, day__lte=stop)
+        for log in logs:
+            nutrients = log.dish.nutrients(grams=log.grams, fraction=log.fraction)
+            for nutrient in nutrients:
+                result[nutrient] += nutrients[nutrient]
+        return dict(result)

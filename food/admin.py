@@ -36,7 +36,7 @@ class IngredientNutrientAdmin(admin.TabularInline):
     extra = 0
 
 class GrammsOfIngredientPerUnitInlineAdmin(admin.TabularInline):
-    model = food.GrammsOfIngredientPerUnit
+    model = food.GramsOfIngredientPerUnit
     extra = 0
 
 
