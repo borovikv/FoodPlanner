@@ -2,13 +2,19 @@ import markdownx.models as markdown
 from collections import defaultdict
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
+from typing import Dict
 
 
 class Unit(models.Model):
+    GR = 'gr'
+    MG = 'mg'
+    KCAL = 'kcal'
     PREDEFINED_UNITS = {
-        'gramm': 'gr',
-        'milligramm': 'mg'
+        'gramm': GR,
+        'milligramm': MG,
+        KCAL: KCAL,
     }
     title = models.CharField(max_length=25)
 
@@ -23,26 +29,10 @@ class Unit(models.Model):
         elif self.title == Unit.PREDEFINED_UNITS['milligramm']:
             return ammount / 1000.0
 
-    def __lt__(self, other):
-        """
-        The more important units are created before less important thus they will have lower pk
-        """
-        return self.pk > other.pk
-
-    def __gt__(self, other):
-        """
-        The more important units are created before less important thus they will have lower pk
-        """
-        return self.pk < other.pk
-
-    def __eq__(self, other):
-        if not other:
-            return False
-        return self.pk == other.pk
-
 
 class Nutrient(models.Model):
     OPTIONS = (
+        'KCal',
         'Total Fat',
         'Saturated FatMonounsaturated Fat',
         'Polyunsaturated Fat',
@@ -78,23 +68,42 @@ class Nutrient(models.Model):
         'Manganese',
         'Protein'
     )
+    MACRO = 'macro'
+    MICRO = 'micro'
+    ENERGY = 'energy'
+    TYPE_ORDER = [ENERGY, MACRO, MICRO]
+
     title = models.CharField(max_length=128, choices=[(e, e) for e in OPTIONS])
+    type = models.CharField(max_length=10, choices=((MACRO, MACRO), (MICRO, MICRO), (ENERGY, ENERGY),))
     dri = models.FloatField()
     dri_unit = models.ForeignKey(Unit)
 
     def __str__(self):
         return self.title
 
-    def __gt__(self, other):
-        return self.dri_unit > other.dri_unit or self.dri_unit == other.dri_unit and self.dri > other.dri
+    def __gt__(self, other: 'Nutrient'):
+        return self._position() > other._position() or self.type == other.type and self.dri > other.dri
 
-    def __lt__(self, other):
-        return self.dri_unit < other.dri_unit or self.dri_unit == other.dri_unit and self.dri < other.dri
+    def _position(self):
+        return 1.0 / self.TYPE_ORDER.index(self.type)
+
+    def __lt__(self, other: 'Nutrient'):
+        return self._position() < other._position() or self.type == other.type and self.dri < other.dri
 
     def __eq__(self, other):
         if not other:
             return False
         return self.title == other.title
+
+    def is_correct_unit_for_nutrient_type(self, unit):
+        return self.default_unit_title() == unit.title
+
+    def default_unit_title(self):
+        return {
+            Nutrient.MACRO: Unit.GR,
+            Nutrient.MICRO: Unit.MG,
+            Nutrient.ENERGY: Unit.KCAL
+        }[self.type]
 
 
 class Meal(models.Model):
@@ -134,32 +143,25 @@ class Dish(models.Model):
     def __str__(self):
         return self.title
 
-    def nutrients(self) -> list:
-        nutrients_to_amount_per_unit = defaultdict(lambda: defaultdict(float))
-        calories = 0
-        for ingredient in self.ingredients.all():
-            calories += ingredient.calories()
-            for nutrient in ingredient.ingredient.nutrients.all():
-                if nutrient.ammount:
-                    nutrients_to_amount_per_unit[nutrient.nutrient][nutrient.unit] += ingredient.quantity() * nutrient.ammount
+    def nutrients(self) -> Dict[Nutrient, float]:
+        """
+        :return: dict[nutrient] = NutrientAmount
+        """
+        nutrients_to_amount_per_unit = defaultdict(float)
+        for dish_ingredient in self.ingredients.all():
+            ingredient_quantity = dish_ingredient.quantity()
+            for nutrient in dish_ingredient.ingredient.nutrients.all():
+                if not nutrient.amount_per_100_gr:
+                    continue
 
-        result = []
-        for n in dict(nutrients_to_amount_per_unit):
-            amount_per_unit = nutrients_to_amount_per_unit[n]
+                nutrients_to_amount_per_unit[nutrient.nutrient] += ingredient_quantity * nutrient.amount_per_100_gr
 
-            if len(amount_per_unit) == 1:
-                result.append((n,) + tuple(amount_per_unit.items())[0])
-
-        result.sort(key=lambda a: a[0])
-        result.reverse()
-        result = [('calories', 'kkal', calories)] + result
-        return result
+        return dict(nutrients_to_amount_per_unit)
 
 
 class Ingredient(models.Model):
     title = models.CharField(max_length=128)
     amount = models.FloatField(null=True, blank=True)
-    calories_per_100_gr = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -170,11 +172,15 @@ class Ingredient(models.Model):
 class IngredientNutrient(models.Model):
     ingredient = models.ForeignKey(Ingredient, related_name='nutrients')
     nutrient = models.ForeignKey(Nutrient)
-    ammount = models.FloatField(null=True, blank=True)
+    amount_per_100_gr = models.FloatField(null=True, blank=True)
     unit = models.ForeignKey(Unit)
 
     def __str__(self):
         return str(self.nutrient)
+
+    def clean(self):
+        if not self.nutrient.is_correct_unit_for_nutrient_type(unit=self.unit):
+            raise ValidationError(f'Incorrect unit {self.unit} for nutrient type {self.nutrient}:{self.nutrient.type}')
 
 
 class DishIngredient(models.Model):
@@ -213,7 +219,8 @@ class GrammsOfIngredientPerUnit(models.Model):
     grams = models.FloatField()
 
     def __str__(self):
-        return '{unit} of {ingredient} = {grams}'.format(ingredient=self.ingredient, unit=self.unit_id, grams=self.grams)
+        return '{unit} of {ingredient} = {grams}'.format(ingredient=self.ingredient, unit=self.unit_id,
+                                                         grams=self.grams)
 
     def convert(self, amount: float) -> float:
         """

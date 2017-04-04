@@ -22,11 +22,11 @@
     <div>{{ obj.preparation|markdownify }}</div>
 
     <table>
-    {% for nutrient, unit, amount in obj.nutrients %}
+    {% for nutrient, amount in nutrients %}
         <tr>
             <td>{{ nutrient }}</td>
-            <td>{{ unit }}</td>
-            <td>{{ amount }}</td>
+            <td>{{ nutrient.default_unit_title }}</td>
+            <td>{{ amount|floatformat:-2 }}</td>
             <td>{{ nutrient.dri }}</td>
         </tr>
     {% endfor %}
