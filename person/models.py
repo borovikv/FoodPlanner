@@ -15,6 +15,12 @@ class Info(models.Model):
     user = models.ForeignKey(User)
     age_years = models.PositiveIntegerField()
     height_cm = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class Weight(models.Model):
+    user = models.ForeignKey(User)
     weight_kg = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -119,27 +125,3 @@ class DayPlan(models.Model):
 
     class Meta:
         ordering = ['day']
-
-
-class DishLog(models.Model):
-    user = models.ForeignKey(User)
-    plan = models.ForeignKey(DietPlan)
-    day = models.DateField()
-    dish = models.ForeignKey(food.GenericDish)
-    grams = models.PositiveIntegerField(null=True, blank=True)
-    fraction = models.PositiveIntegerField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    @staticmethod
-    def analyze(plan: DietPlan, start: datetime, stop: datetime = None):
-        if not stop:
-            stop = datetime.datetime.now()
-
-        result = defaultdict(float)
-        logs = DishLog.objects.filter(plan=plan, day__gte=start, day__lte=stop)
-        for log in logs:
-            nutrients = log.dish.nutrients(grams=log.grams, fraction=log.fraction)
-            for nutrient in nutrients:
-                result[nutrient] += nutrients[nutrient]
-        return dict(result)

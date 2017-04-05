@@ -76,7 +76,6 @@ class Nutrient(models.Model):
     title = models.CharField(max_length=128, choices=[(e, e) for e in OPTIONS])
     type = models.CharField(max_length=10, choices=((MACRO, MACRO), (MICRO, MICRO), (ENERGY, ENERGY),))
     dri = models.FloatField()
-    dri_unit = models.ForeignKey(Unit)
 
     def __str__(self):
         return self.title
@@ -162,7 +161,6 @@ class Dish(models.Model):
 
 class Ingredient(models.Model):
     title = models.CharField(max_length=128)
-    amount = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -230,29 +228,3 @@ class GramsOfIngredientPerUnit(models.Model):
         :return: grams
         """
         return self.grams * amount
-
-
-class GenericDish(models.Model):
-    title = models.CharField(max_length=128, null=True, blank=True)
-    dish = models.ForeignKey(Dish, null=True, blank=True)
-
-    def __str__(self):
-        return self.dish and str(self.dish) or self.title
-
-    def nutrients(self, grams=None, fraction=None) -> Dict[Nutrient, float]:
-        if self.dish:
-            return self.dish.nutrients(fraction or 1)
-        else:
-            result = {}
-            quantity = float(grams or 100) / 100
-            for dish_nutrient in self.dish_nutrients.all():
-                result[dish_nutrient.nutrient] = dish_nutrient.amount_per_100_gr * quantity
-
-
-class GenericDishNutrient(models.Model):
-    dish = models.ForeignKey(GenericDish, related_name='dish_nutrients')
-    nutrient = models.ForeignKey(Nutrient)
-    amount_per_100_gr = models.FloatField(null=True, blank=True)
-
-    def __str__(self):
-        return str(self.nutrient)
