@@ -17,6 +17,7 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from FoodPlanner import settings
 import django.views.static as static
+from django.views.generic import TemplateView
 from ajax_select import urls as ajax_select_urls
 
 urlpatterns = [
@@ -24,8 +25,8 @@ urlpatterns = [
     url(r'^ajax_select/', include(ajax_select_urls)),
     url(r'^markdownx/', include('markdownx.urls')),
     url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}),
-    url(r'^food/', include('food.urls')),
-    url(r'^person/', include('person.urls')),
+    url(r'^food/', include('food.urls', app_name='food', namespace='food')),
+    url(r'^person/', include('person.urls', app_name='person', namespace='person')),
+    url(r'^$', TemplateView.as_view(template_name='main.html')),
+
 ]
-
-

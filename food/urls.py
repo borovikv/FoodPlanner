@@ -3,5 +3,6 @@ import food.views as f
 
 
 urlpatterns = [
-    url(r'^dish/(?P<pk>\d+)$', f.dish),
+    url(r'^dishes$', f.dishes, name='dishes'),
+    url(r'^dish/(?P<pk>\d+)$', f.dish, name='dish'),
 ]
