@@ -1,6 +1,7 @@
 from ajax_select.helpers import make_ajax_form
 from django.contrib import admin
 from django.db import models
+from markdownx.admin import MarkdownxModelAdmin
 from markdownx.widgets import AdminMarkdownxWidget
 
 import food.models as food
@@ -19,7 +20,7 @@ class DishIngredientAdmin(admin.TabularInline):
 
 
 @admin.register(food.Dish)
-class DishAdmin(admin.ModelAdmin):
+class DishAdmin(MarkdownxModelAdmin):
     inlines = [
         DishIngredientAdmin
     ]
@@ -34,6 +35,7 @@ class DishAdmin(admin.ModelAdmin):
 class IngredientNutrientAdmin(admin.TabularInline):
     model = food.IngredientNutrient
     extra = 0
+
 
 class GrammsOfIngredientPerUnitInlineAdmin(admin.TabularInline):
     model = food.GramsOfIngredientPerUnit

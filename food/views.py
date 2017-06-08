@@ -11,4 +11,4 @@ def dish(request, pk: str):
 
 def dishes(request):
     all_dishes = f.Dish.objects.all()
-    return render(request=request, template_name='dish.html', context={'dishes': all_dishes})
+    return render(request=request, template_name='dishes.html', context={'dishes': all_dishes})
