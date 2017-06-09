@@ -1,10 +1,13 @@
 import markdownx.models as markdown
+import markdown as m
 from collections import defaultdict
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from typing import Dict
+
+from FoodPlanner import settings
 
 
 class Unit(models.Model):
@@ -134,7 +137,10 @@ class Dish(models.Model):
     category = models.CharField(max_length=32, choices=[(e, e) for e in OPTIONS])
     meals = models.ManyToManyField(Meal)
     description = markdown.MarkdownxField()
+    description_html = models.TextField(null=True, blank=True)
     preparation = markdown.MarkdownxField()
+    preparation_html = models.TextField(null=True, blank=True)
+    thumbnail = models.ImageField(null=True, blank=True)
     owner = models.ForeignKey(User)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -157,6 +163,15 @@ class Dish(models.Model):
                 nutrients_to_amount_per_unit[nutrient.nutrient] += ingredient_quantity * fraction * nutrient.amount_per_100_gr
 
         return dict(nutrients_to_amount_per_unit)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        self.preparation_html = m.markdown(self.preparation, extensions=settings.MARKDOWNX_MARKDOWN_EXTENSIONS)
+        self.description_html = m.markdown(self.description, extensions=settings.MARKDOWNX_MARKDOWN_EXTENSIONS)
+        super(Dish, self).save(force_insert=force_insert, force_update=force_update, using=using,
+             update_fields=update_fields)
+
+
 
 
 class Ingredient(models.Model):

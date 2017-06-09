@@ -30,6 +30,7 @@ ALLOWED_HOSTS = ['food-planner.herokuapp.com', 'localhost', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    # django
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -37,13 +38,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # third party
     'ajax_select',
     'markdownx',
+    'rest_framework',
+    'django_extensions',
 
+    # utils
     'utils',
 
+    # app
     'food',
     'person',
+    'rest_api',
 ]
 
 MIDDLEWARE = [
@@ -136,3 +143,11 @@ MARKDOWNX_MARKDOWN_EXTENSIONS = [
     'markdown.extensions.nl2br',
     'markdown.extensions.smarty',
 ]
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}

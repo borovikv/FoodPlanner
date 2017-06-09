@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^ajax_select/', include(ajax_select_urls)),
     url(r'^markdownx/', include('markdownx.urls')),
+    url(r'^api/', include('rest_api.urls', namespace="api")),
     url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}),
     url(r'^media/(?P<path>.*)$', static.serve, {'document_root': settings.MEDIA_ROOT}),
     url(r'^food/', include('food.urls', app_name='food', namespace='food')),
