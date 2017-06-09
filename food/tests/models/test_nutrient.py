@@ -3,7 +3,7 @@ import food.models as food
 import food.tests.factories as factories
 
 
-class NutrientTest(TestCase):
+class TestNutrient(TestCase):
     def test_is_correct_unit_for_nutrient_type_return_true_when_unit_match_type_macro(self):
         # GIVEN
         gr = factories.UnitFactory.create(title=food.Unit.GR)

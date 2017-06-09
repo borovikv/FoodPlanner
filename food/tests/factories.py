@@ -16,4 +16,3 @@ class NutrientFactory(factory.Factory):
     title = 'abracadabra',
     type = food.Nutrient.MACRO,
     dri = 1.1,
-    dri_unit = UnitFactory.create()
