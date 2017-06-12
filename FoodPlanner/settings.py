@@ -16,6 +16,9 @@ import dj_database_url
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+DEVELOP = 'develop'
+STAGE = os.environ.get('STAGE', DEVELOP)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
@@ -42,7 +45,6 @@ INSTALLED_APPS = [
     'ajax_select',
     'markdownx',
     'rest_framework',
-    'django_extensions',
 
     # utils
     'utils',
@@ -52,6 +54,12 @@ INSTALLED_APPS = [
     'person',
     'rest_api',
 ]
+
+if STAGE == DEVELOP:
+    INSTALLED_APPS += [
+        'django_extensions',
+    ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -1,13 +1,12 @@
-import markdownx.models as markdown
-import markdown as m
+import re
 from collections import defaultdict
-
-from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
-from django.db import models
 from typing import Dict
 
-from FoodPlanner import settings
+from django.db import models
+from django.contrib.auth.models import User
+from django.contrib.postgres.fields import JSONField
+from django.core.exceptions import ValidationError
+import markdownx.models as markdown
 
 
 class Unit(models.Model):
@@ -15,8 +14,8 @@ class Unit(models.Model):
     MG = 'mg'
     KCAL = 'kcal'
     PREDEFINED_UNITS = {
-        'gramm': GR,
-        'milligramm': MG,
+        'gram': GR,
+        'milligram': MG,
         KCAL: KCAL,
     }
     title = models.CharField(max_length=25)
@@ -128,19 +127,18 @@ class Meal(models.Model):
 
 
 class Dish(models.Model):
-    OPTIONS = (
+    CATEGORY_OPTIONS = (
         'drink',
         'snack',
         'food'
     )
     title = models.CharField(max_length=128)
-    category = models.CharField(max_length=32, choices=[(e, e) for e in OPTIONS])
+    category = models.CharField(max_length=32, choices=[(e, e) for e in CATEGORY_OPTIONS])
     meals = models.ManyToManyField(Meal)
     description = markdown.MarkdownxField()
-    description_html = models.TextField(null=True, blank=True)
-    preparation = markdown.MarkdownxField()
-    preparation_html = models.TextField(null=True, blank=True)
     thumbnail = models.ImageField(null=True, blank=True)
+    ingredients_json = JSONField(null=True, blank=True)
+    nutrients_json = JSONField(null=True, blank=True)
     owner = models.ForeignKey(User)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -164,14 +162,23 @@ class Dish(models.Model):
 
         return dict(nutrients_to_amount_per_unit)
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        self.preparation_html = m.markdown(self.preparation, extensions=settings.MARKDOWNX_MARKDOWN_EXTENSIONS)
-        self.description_html = m.markdown(self.description, extensions=settings.MARKDOWNX_MARKDOWN_EXTENSIONS)
-        super(Dish, self).save(force_insert=force_insert, force_update=force_update, using=using,
-             update_fields=update_fields)
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.ingredients_json = {
+            str(ingredient.ingredient): {
+                'amount': ingredient.amount,
+                'unit': str(ingredient.unit),
+                'order': i
+            }
+            for i, ingredient in enumerate(self.ingredients.all())
+        }
+        self.nutrients_json = {str(nutrient): amount for nutrient, amount in self.nutrients().items()}
+        self.thumbnail = self.get_thumbnail()
+        super(Dish, self).save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
-
+    def get_thumbnail(self):
+        path_match = re.match(r'!\[\]\(/media/(?P<path>markdownx/[0-9a-z-]+.jpg)\)', self.description)
+        if path_match:
+            return path_match.group('path')
 
 
 class Ingredient(models.Model):
