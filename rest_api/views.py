@@ -1,11 +1,27 @@
 from rest_framework import viewsets
+from rest_framework.decorators import list_route
 from rest_framework.renderers import JSONRenderer, AdminRenderer, BrowsableAPIRenderer
+from rest_framework.response import Response
 
-from rest_api.serializers import DishSerializer
 import food.models as food
+from rest_api.serializers import DishSerializer
 
 
 class DishViewSet(viewsets.ModelViewSet):
-    queryset = food.Dish.objects.all()
     serializer_class = DishSerializer
     renderer_classes = (JSONRenderer, AdminRenderer, BrowsableAPIRenderer)
+
+    def get_queryset(self):
+        return food.Dish.objects.filter(owner=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    @list_route()
+    def recommendations(self, request):
+        user = request.user
+        print(user)
+        queryset = food.Dish.objects.all()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+

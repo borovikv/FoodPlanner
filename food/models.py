@@ -18,7 +18,7 @@ class Unit(models.Model):
         'milligram': MG,
         KCAL: KCAL,
     }
-    title = models.CharField(max_length=25)
+    title = models.CharField(max_length=25, unique=True)
 
     def __str__(self):
         return self.title
@@ -75,7 +75,7 @@ class Nutrient(models.Model):
     ENERGY = 'energy'
     TYPE_ORDER = [ENERGY, MACRO, MICRO]
 
-    title = models.CharField(max_length=128, choices=[(e, e) for e in OPTIONS])
+    title = models.CharField(max_length=128, choices=[(e, e) for e in OPTIONS], unique=True)
     type = models.CharField(max_length=10, choices=((MACRO, MACRO), (MICRO, MICRO), (ENERGY, ENERGY),))
     dri = models.FloatField()
 
@@ -120,7 +120,7 @@ class Meal(models.Model):
         SUPPER,
         SNACK,
     )
-    title = models.CharField(max_length=128, choices=[(e, e) for e in OPTIONS])
+    title = models.CharField(max_length=128, choices=[(e, e) for e in OPTIONS], unique=True)
 
     def __str__(self):
         return self.title
@@ -146,9 +146,8 @@ class Dish(models.Model):
     def __str__(self):
         return self.title
 
-    def nutrients(self, fraction: int=1) -> Dict[Nutrient, float]:
+    def nutrients(self) -> Dict[Nutrient, float]:
         """
-        :param fraction: part of portion. For example half/two portion of some dish
         :return: amount of nutrients per dish
         """
         nutrients_to_amount_per_unit = defaultdict(float)
@@ -158,11 +157,36 @@ class Dish(models.Model):
                 if not nutrient.amount_per_100_gr:
                     continue
 
-                nutrients_to_amount_per_unit[nutrient.nutrient] += ingredient_quantity * fraction * nutrient.amount_per_100_gr
+                nutrients_to_amount_per_unit[nutrient.nutrient] += ingredient_quantity * nutrient.amount_per_100_gr
 
         return dict(nutrients_to_amount_per_unit)
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    @classmethod
+    def nutrients_from_json(cls, ingredients_json) -> Dict[str, float]:
+        """
+        :return: amount of nutrients per dish
+        """
+        nutrients_to_amount_per_unit = defaultdict(float)
+        for title, amount in ingredients_json.items():
+            ingredient = Ingredient.objects.filter(title=title).first()
+            if not ingredient:
+                continue
+            ingredient_quantity = quantity(ingredient=title, amount=amount['amount'], unit=amount['unit'])
+            for nutrient in ingredient.nutrients.all():
+                nutrients_to_amount_per_unit[nutrient.nutrient] += ingredient_quantity * nutrient.amount_per_100_gr
+
+        return dict(nutrients_to_amount_per_unit)
+
+    def set_thumbnail(self):
+        path_match = re.match(r'!\[\]\(/media/(?P<path>markdownx/[0-9a-z-]+.jpg)\)', self.description)
+        if path_match:
+            self.thumbnail = path_match.group('path')
+
+    def set_nutrients_json(self):
+        nutrients = self.nutrients() or self.nutrients_from_json(self.ingredients_json)
+        self.nutrients_json = {str(nutrient): amount for nutrient, amount in nutrients.items()}
+
+    def set_ingredients_json(self):
         self.ingredients_json = {
             str(ingredient.ingredient): {
                 'amount': ingredient.amount,
@@ -171,18 +195,14 @@ class Dish(models.Model):
             }
             for i, ingredient in enumerate(self.ingredients.all())
         }
-        self.nutrients_json = {str(nutrient): amount for nutrient, amount in self.nutrients().items()}
-        self.thumbnail = self.get_thumbnail()
-        super(Dish, self).save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
-    def get_thumbnail(self):
-        path_match = re.match(r'!\[\]\(/media/(?P<path>markdownx/[0-9a-z-]+.jpg)\)', self.description)
-        if path_match:
-            return path_match.group('path')
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.set_nutrients_json()
+        super(Dish, self).save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
 
 class Ingredient(models.Model):
-    title = models.CharField(max_length=128)
+    title = models.CharField(max_length=128, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -193,7 +213,7 @@ class Ingredient(models.Model):
 class IngredientNutrient(models.Model):
     ingredient = models.ForeignKey(Ingredient, related_name='nutrients')
     nutrient = models.ForeignKey(Nutrient)
-    amount_per_100_gr = models.FloatField(null=True, blank=True)
+    amount_per_100_gr = models.FloatField(default=0)
     unit = models.ForeignKey(Unit)
 
     def __str__(self):
@@ -227,11 +247,7 @@ class DishIngredient(models.Model):
                      milk           will be 100 / 100 = 1
         :return: coefficient of how many 100 gr units included in total grams of this ingredient in dish
         """
-        return self.convert_to_grams() / 100.0
-
-    def convert_to_grams(self):
-        c = GramsOfIngredientPerUnit.objects.filter(ingredient=self.ingredient, unit=self.unit).first()
-        return c.convert(self.amount)
+        return quantity(ingredient=self.ingredient.title, amount=self.amount, unit=self.unit.title)
 
 
 class GramsOfIngredientPerUnit(models.Model):
@@ -250,3 +266,22 @@ class GramsOfIngredientPerUnit(models.Model):
         :return: grams
         """
         return self.grams * amount
+
+    @classmethod
+    def convert_to_grams(cls, ingredient: str, unit: str, amount) -> float:
+        return GramsOfIngredientPerUnit.objects.filter(
+            ingredient__title=ingredient,
+            unit__title=unit
+        ).first().convert(amount)
+
+
+def quantity(ingredient: str, unit: str, amount: float):
+    """
+    how many 100 gr units included in total grams of this ingredient in dish
+    for example:
+    shake: 20 gr protein powder, 100 gr milk
+    quantity for protein powder will be 20 / 100 = 0.2
+                 milk           will be 100 / 100 = 1
+    :return: coefficient of how many 100 gr units included in total grams of this ingredient in dish
+    """
+    return GramsOfIngredientPerUnit.convert_to_grams(ingredient=ingredient, amount=float(amount), unit=unit) / 100.0

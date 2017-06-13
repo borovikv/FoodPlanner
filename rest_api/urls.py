@@ -6,7 +6,7 @@ from rest_api.views import DishViewSet
 
 
 router = routers.DefaultRouter()
-router.register(r'dishes', DishViewSet)
+router.register(r'dishes', DishViewSet, 'dishes')
 
 urlpatterns = [
     url(r'^', include(router.urls)),
