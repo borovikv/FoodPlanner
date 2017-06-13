@@ -168,7 +168,7 @@ class Dish(models.Model):
         """
         nutrients_to_amount_per_unit = defaultdict(float)
         for title, amount in ingredients_json.items():
-            ingredient = Ingredient.objects.filter(title=title).first()
+            ingredient = Ingredient.objects.filter(title__iexact=title).first()
             if not ingredient:
                 continue
             ingredient_quantity = quantity(ingredient=title, amount=amount['amount'], unit=amount['unit'])
@@ -225,6 +225,11 @@ class IngredientNutrient(models.Model):
 
 
 class DishIngredient(models.Model):
+    # todo: remove this class
+    """
+    This class is used only for django admin fill ingredients
+    It should be removed as soon as custom admin form for json fields will be created
+    """
     dish = models.ForeignKey(Dish, related_name='ingredients')
     ingredient = models.ForeignKey(Ingredient, related_name='dishes')
     amount = models.FloatField(null=True, blank=True)
@@ -269,10 +274,13 @@ class GramsOfIngredientPerUnit(models.Model):
 
     @classmethod
     def convert_to_grams(cls, ingredient: str, unit: str, amount) -> float:
-        return GramsOfIngredientPerUnit.objects.filter(
-            ingredient__title=ingredient,
-            unit__title=unit
-        ).first().convert(amount)
+        try:
+            return cls.objects.get(
+                ingredient__title__iexact=ingredient,
+                unit__title__iexact=unit
+            ).convert(amount)
+        except:
+            return 0
 
 
 def quantity(ingredient: str, unit: str, amount: float):
