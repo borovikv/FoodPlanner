@@ -11,6 +11,5 @@ router.register(r'dishes', DishViewSet, 'dishes')
 
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api-token-auth/', views.obtain_auth_token),
 ]

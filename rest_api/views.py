@@ -11,7 +11,6 @@ from rest_api.serializers import DishSerializer
 class DishViewSet(viewsets.ModelViewSet):
     serializer_class = DishSerializer
     renderer_classes = (JSONRenderer, AdminRenderer, BrowsableAPIRenderer)
-    authentication_classes = (TokenAuthentication, BasicAuthentication)
 
     def get_queryset(self):
         if self.request.user.is_anonymous():
