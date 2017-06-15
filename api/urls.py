@@ -3,7 +3,7 @@ from django.conf.urls import url, include
 from rest_framework import routers
 from rest_framework.authtoken import views
 
-from rest_api.views import DishViewSet
+from api.views import DishViewSet
 
 
 router = routers.DefaultRouter()

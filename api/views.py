@@ -1,11 +1,10 @@
 from rest_framework import viewsets
-from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework.decorators import list_route
 from rest_framework.renderers import JSONRenderer, AdminRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 
 import food.models as food
-from rest_api.serializers import DishSerializer
+from api.serializers import DishSerializer
 
 
 class DishViewSet(viewsets.ModelViewSet):

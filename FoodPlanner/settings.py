@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     # app
     'food',
     'person',
-    'rest_api',
+    'api',
 ]
 
 if STAGE == DEVELOP:
@@ -164,5 +164,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-    )
+    ),
+
+    'DEFAULT_PAGINATION_CLASS': "api.pagination.CustomPagination",
 }
