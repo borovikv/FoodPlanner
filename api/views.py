@@ -24,6 +24,11 @@ class DishViewSet(viewsets.ModelViewSet):
         user = request.user
         print(user)
         queryset = food.Dish.objects.all()
-        serializer = self.get_serializer(queryset, many=True)
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page or queryset, many=True)
+
+        if page:
+            return self.get_paginated_response(serializer.data)
+
         return Response(serializer.data)
 
