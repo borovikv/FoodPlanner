@@ -8,6 +8,8 @@ from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 import markdownx.models as markdown
 
+import tagging.models as t
+
 
 class Unit(models.Model):
     GR = 'gr'
@@ -126,6 +128,8 @@ class Meal(models.Model):
         return self.title
 
 
+
+
 class Dish(models.Model):
     CATEGORY_OPTIONS = (
         'drink',
@@ -140,6 +144,7 @@ class Dish(models.Model):
     ingredients_json = JSONField(null=True, blank=True)
     nutrients_json = JSONField(null=True, blank=True)
     owner = models.ForeignKey(User)
+    tags = models.ManyToManyField(t.Tag, related_name='dishes')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
