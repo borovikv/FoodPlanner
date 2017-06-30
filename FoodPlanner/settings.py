@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'person',
     'api',
     'tagging',
+    'diet',
 ]
 
 if STAGE == DEVELOP:

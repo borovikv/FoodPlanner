@@ -31,13 +31,17 @@ class DishAdmin(MarkdownxModelAdmin):
 
     filter_horizontal = ('meals', )
     exclude = ('owner', )
-    list_display = ('title', 'owner', )
+    list_display = ('title', 'owner', 'meals_str')
+    search_fields = ('title', 'description', )
 
     def save_model(self, request, obj, form, change):
         obj.owner = request.user
         obj.set_thumbnail()
         obj.set_ingredients_json()
         super(DishAdmin, self).save_model(request, obj, form, change)
+
+    def meals_str(self, obj):
+        return ', '.join(str(m) for m in obj.meals.all())
 
 
 class IngredientNutrientAdmin(admin.TabularInline):
