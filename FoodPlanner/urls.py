@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^media/(?P<path>.*)$', static.serve, {'document_root': settings.MEDIA_ROOT}),
     url(r'^food/', include('food.urls', app_name='food', namespace='food')),
     url(r'^person/', include('person.urls', app_name='person', namespace='person')),
+    url(r'^diet/', include('diet.urls', app_name='diet', namespace='diet')),
     url(r'^$', TemplateView.as_view(template_name='main.html')),
 
 ]

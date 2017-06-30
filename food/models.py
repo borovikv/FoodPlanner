@@ -12,7 +12,7 @@ import tagging.models as t
 
 
 class Unit(models.Model):
-    GR = 'gr'
+    GR = 'g'
     MG = 'mg'
     KCAL = 'kcal'
     PREDEFINED_UNITS = {
@@ -200,6 +200,9 @@ class Dish(models.Model):
             }
             for i, ingredient in enumerate(self.ingredients.all())
         }
+
+    def ingredient_to_amount(self):
+        return self.ingredients_json
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.set_nutrients_json()

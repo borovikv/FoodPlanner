@@ -1,6 +1,7 @@
 import random
 from typing import List
 
+from collections import defaultdict
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
 from django.db import models
@@ -8,7 +9,7 @@ from django.core.exceptions import ValidationError
 from markdownx.models import MarkdownxField
 
 import food.models as f
-from diet.utils import meals
+from diet.utils import meals, convert_to_grams
 
 
 class Diet(models.Model):
@@ -65,3 +66,29 @@ class Diet(models.Model):
 
     def get_dishes_for_meal(self, meal):
         return list(self.dishes.filter(meals__title=meal).distinct())
+
+    def day_dishes(self, from_day=0, to_day=None):
+        all_dishes = self.dishes.all()
+
+        if not to_day:
+            to_day = len(self.days)
+
+        if from_day > to_day:
+            return []
+        print(self.days[from_day: to_day])
+        return [[d for d in all_dishes if d.pk in day] for day in self.days[from_day: to_day]]
+
+    def ingredients_for_period(self, from_day=0, to_day=None):
+        dishes = sum(self.day_dishes(from_day=from_day, to_day=to_day), [])
+        ingredients = defaultdict(list)
+        for dish in dishes:
+            ingredient_to_amount = dish.ingredient_to_amount()
+            for ingredient, amount in ingredient_to_amount.items():
+                ingredients[ingredient].append(amount)
+
+        result = {}
+        for ingredient, amounts in ingredients.items():
+            total_g = sum(convert_to_grams(ingredient, amount['amount'], amount['unit']) for amount in amounts)
+            result[ingredient] = total_g, f.Unit.GR
+
+        return result
