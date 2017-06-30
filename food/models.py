@@ -144,7 +144,7 @@ class Dish(models.Model):
     ingredients_json = JSONField(null=True, blank=True)
     nutrients_json = JSONField(null=True, blank=True)
     owner = models.ForeignKey(User)
-    tags = models.ManyToManyField(t.Tag, related_name='dishes')
+    tags = models.ManyToManyField(t.Tag, related_name='dishes', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
