@@ -1,4 +1,75 @@
 {% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block page_style %}
+{% endblock %}
+
 {% block content %}
-{{ object.ingredients_for_period }}
+<h1>{{ object.title|capfirst }}</h1>
+<div class="mb-1">
+    {{ object.description}}
+</div>
+
+<table>
+    <tr>
+        <th>{% trans "Number of meals" %}</th>
+        <td>{{ object.number_of_meals }}</td>
+    </tr>
+    {% if object.number_of_days %}
+    <tr>
+        <th>{% trans "Number of days" %}</th>
+        <td>{{ object.number_of_days }}</td>
+    </tr>
+    {% else %}
+    <tr>
+        <th>{% trans "Number of weeks" %}</th>
+        <td>{{ object.number_of_weeks }}</td>
+    </tr>
+    {% endif %}
+</table>
+
+<h2>{% trans "Dishes" %}</h2>
+<table class="table">
+    <tr>
+        <th>{% trans "Dish" %}</th>
+        <th>{% trans "Appear times" %}</th>
+    </tr>
+    {% for dish, times in object.counted_dishes %}
+    <tr>
+        <th>{{ dish }}</th>
+        <td>{{ times }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>{% trans "Menu" %}</h2>
+<table class="table">
+    <tr class="header">
+        <th>{% trans "Day" %}</th>
+        <th>{% trans "Dishes" %}</th>
+    </tr>
+    {% for day in object.day_dishes %}
+    <tr>
+        <td rowspan="{{ object.number_of_meals|add:1 }}">{{ forloop.counter }}</td>
+    </tr>
+    {% for dish in day %}
+    <tr>
+        <td>{{ dish }}</td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+</table>
+
+<h2>{% trans "Ingredients" %}</h2>
+<table class="table table-compact">
+    {% for ingredient, amount in object.ingredients_for_period.items %}
+    <tr>
+        <td>{{ ingredient }}</td>
+        <td>{{ amount.0 }} {{ amount.1 }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+
 {% endblock %}

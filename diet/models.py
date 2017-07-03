@@ -68,15 +68,12 @@ class Diet(models.Model):
         return list(self.dishes.filter(meals__title=meal).distinct())
 
     def day_dishes(self, from_day=0, to_day=None):
-        all_dishes = self.dishes.all()
-
         if not to_day:
             to_day = len(self.days)
 
         if from_day > to_day:
             return []
-        print(self.days[from_day: to_day])
-        return [[d for d in all_dishes if d.pk in day] for day in self.days[from_day: to_day]]
+        return [[self.dishes.filter(pk=pk).first() for pk in day] for day in self.days[from_day: to_day]]
 
     def ingredients_for_period(self, from_day=0, to_day=None):
         dishes = sum(self.day_dishes(from_day=from_day, to_day=to_day), [])
@@ -92,3 +89,10 @@ class Diet(models.Model):
             result[ingredient] = total_g, f.Unit.GR
 
         return result
+
+    def counted_dishes(self, from_day=0, to_day=None):
+        dishes = sum(self.day_dishes(from_day=from_day, to_day=to_day), [])
+        result = defaultdict(int)
+        for d in dishes:
+            result[d] += 1
+        return result.items()
