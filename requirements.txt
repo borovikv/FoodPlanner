@@ -5,3 +5,6 @@ dj-database-url==0.4.2
 gunicorn==19.7.0
 django-ajax-selects==1.5.2
 djangorestframework==3.6.3
+requests==2.18.1
+python-dateutil==2.6.0
+beautifulsoup4

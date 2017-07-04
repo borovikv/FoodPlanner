@@ -2,24 +2,24 @@
 {% load string_tags %}
 
 {% block content %}
-    <h1>{{ obj.title }}</h1>
+<h1>{{ dish.title }}</h1>
 
     <div>
-    {% for meal in obj.meals.all %}
+        {% for meal in dish.meals.all %}
         <span class="label">{{ meal }}</span>
     {% endfor %}
 
     </div>
 
-    <div>{{ obj.description|markdownify }}</div>
+<div>{{ dish.description|markdownify }}</div>
 
     <ul>
-    {% for ingredient in obj.ingredients.all %}
+        {% for ingredient in dish.ingredients.all %}
         <li>{{ ingredient }} - {{ ingredient.amount }} {{ ingredient.units }}</li>
     {% endfor %}
     </ul>
 
-    <div>{{ obj.preparation|markdownify }}</div>
+<div>{{ dish.preparation|markdownify }}</div>
 
     <table>
     {% for nutrient, amount in nutrients %}
