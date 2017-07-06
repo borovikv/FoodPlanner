@@ -10,11 +10,22 @@
         <ul class="navbar-nav mr-auto">
             <li class="nav-item active"><a href="{% url 'admin:index' %}" class="nav-link">Admin</a></li>
             <li class="nav-item active"><a href="{% url 'api:api-root' %}" class="nav-link">Api Root</a></li>
-            <li class="nav-item active"><a href="{% url 'food:dishes' %}" class="nav-link">Dishes</a></li>
+            <li class="nav-item active"></li>
             <li class="nav-item active"><a href="{% url 'diet:diets' %}" class="nav-link">Diets</a></li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true"
+                   aria-expanded="false">Dishes</a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'food:dishes' %}">All dishes</a>
+                    <a class="dropdown-item" href="{% url 'food:create' %}">Create</a>
+                </div>
+            </li>
         </ul>
-        <form class="form-inline my-2 my-lg-0" method="get" action="{% url 'food:dishes' %}">
-            <input class="form-control mr-sm-2" type="text" placeholder="Search" name="query">
+
+
+        <form class="form-inline my-2 my-lg-0" method="get" action="{% url 'searcher:search' %}">
+            <input class="form-control mr-sm-2" type="text" placeholder="Search" name="query" value="{{ query }}">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
         </form>
     </div>
