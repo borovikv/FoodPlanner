@@ -128,8 +128,6 @@ class Meal(models.Model):
         return self.title
 
 
-
-
 class Dish(models.Model):
     CATEGORY_OPTIONS = (
         'drink',
@@ -139,6 +137,7 @@ class Dish(models.Model):
     title = models.CharField(max_length=128)
     category = models.CharField(max_length=32, choices=[(e, e) for e in CATEGORY_OPTIONS])
     meals = models.ManyToManyField(Meal)
+    serving = models.PositiveIntegerField()
     description = markdown.MarkdownxField()
     thumbnail = models.ImageField(null=True, blank=True)
     ingredients_json = JSONField(null=True, blank=True)

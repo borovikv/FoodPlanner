@@ -2,38 +2,36 @@
 {% load string_tags %}
 
 {% block content %}
-<h1>{{ dish.title }}</h1>
+<div class="title">
+    <h1 class="d-inline-block">{{ dish.title }}</h1>
+    <a href="{% url 'food:editing' dish.pk %}"><i></i>Edit</a>
+</div>
 
-    <div>
-        {% for meal in dish.meals.all %}
-        <span class="label">{{ meal }}</span>
+<div>
+    {% for meal in dish.meals.all %}
+    <span class="badge badge-info">{{ meal }}</span>
     {% endfor %}
+</div>
 
-    </div>
+<ul>
+    {% for ingredient_str in dish.ingredients_json|dict_to_ingredients %}
+    <li>{{ ingredient_str }}</li>
+    {% endfor %}
+</ul>
 
 <div>{{ dish.description|markdownify }}</div>
 
-    <ul>
-        {% for ingredient in dish.ingredients.all %}
-        <li>{{ ingredient }} - {{ ingredient.amount }} {{ ingredient.units }}</li>
-    {% endfor %}
-    </ul>
-
-{{ dish.ingredients_json }}
-<br>
 {{ dish.nutrients_json }}
 
-<div>{{ dish.preparation|markdownify }}</div>
-
-    <table>
+<table>
     {% for nutrient, amount in nutrients %}
-        <tr>
-            <td>{{ nutrient }}</td>
-            <td>{{ nutrient.default_unit_title }}</td>
-            <td>{{ amount|floatformat:-2 }}</td>
-            <td>{{ nutrient.dri }}</td>
-        </tr>
+    <tr>
+        <td>{{ nutrient }}</td>
+        <td>{{ nutrient.default_unit_title }}</td>
+        <td>{{ amount|floatformat:-2 }}</td>
+        <td>{{ nutrient.dri }}</td>
+    </tr>
     {% endfor %}
-    </table>
+</table>
 
 {% endblock %}

@@ -1,10 +1,10 @@
 from django.http.response import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.urls.base import reverse
 from django.views import generic as g
 
 import food.models as f
-from food import forms
+from food.forms import forms
 
 
 class DishesView(g.ListView):
@@ -27,13 +27,14 @@ class DishView(g.DetailView):
 
 class DishCreate(g.View):
     def get(self, request, *args, **kwargs):
-        form = forms.DishForm()
+        pk = kwargs.get('pk')
+        dish = get_object_or_404(f.Dish, pk=pk) if pk else None
+        form = forms.DishForm(instance=dish)
         return render(request, 'dish/form.html', context={'form': form})
 
     def post(self, request, *args, **kwargs):
         form = forms.DishForm(request.POST)
-        dish = form.save(request.user)
-        if dish:
-            # dish.save()
+        if form.is_valid():
+            dish = form.save(request.user)
             return HttpResponseRedirect(reverse('food:dish', kwargs=dict(pk=dish.pk)))
         return render(request, 'dish/form.html', context={'form': form})

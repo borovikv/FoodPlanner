@@ -16,7 +16,7 @@ def test_get_ingredients():
 
     print(ingredients)
     # WHEN
-    result = subject.get_ingredients(ingredients)
+    result = subject.ingredients_to_dict(ingredients)
 
     # THEN
     print(result)
