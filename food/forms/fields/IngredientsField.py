@@ -11,12 +11,10 @@ class IngredientsField(forms.CharField):
         return self.prepare_value(initial) != data
 
     def to_python(self, value) -> dict:
-        if not value:
-            return {}
         return u.ingredients_to_dict(value)
 
     def prepare_value(self, value: dict) -> str:
         try:
             return '\n'.join(u.dict_to_ingredients(value))
         except AttributeError:
-            return str(value if value is not None else '')
+            return str(value if value else '')
