@@ -32,6 +32,7 @@ urlpatterns = [
     url(r'^person/', include('person.urls', app_name='person', namespace='person')),
     url(r'^diet/', include('diet.urls', app_name='diet', namespace='diet')),
     url(r'^searcher/', include('searcher.urls', app_name='searcher', namespace='searcher')),
+    url(r'^crawler/', include('crawler.urls', app_name='crawler', namespace='crawler')),
     url(r'^$', TemplateView.as_view(template_name='main.html')),
 
 ]

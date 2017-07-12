@@ -7,7 +7,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 
-from crowler.forms import UrlForm, UrlsForm
+from crawler.forms import UrlForm, UrlsForm
 
 
 class CsrfFreeView(View):
@@ -36,12 +36,12 @@ class DishSaver(CsrfFreeView):
 class Crawler(View):
     def get(self, request, *args, **kwargs):
         form = UrlsForm()
-        return render(request, 'crawler/form.html', context={'form': form})
+        return render(request, 'form.html', context={'form': form})
 
     def post(self, request, *args, **kwargs):
         form = UrlsForm(request.POST)
         if form.is_valid():
-            return render(request, 'crawler/detail.html', context={'urls': form.urls()})
+            return render(request, 'detail.html', context={'urls': form.urls()})
 
 
 def create_dish(html):
