@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -8,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 
 from crawler.forms import UrlForm, UrlsForm
+from crawler.mapping import MAPPING
 
 
 class CsrfFreeView(View):
@@ -16,15 +19,19 @@ class CsrfFreeView(View):
         return super(CsrfFreeView, self).dispatch(request, *args, **kwargs)
 
 
-# noinspection PyMethodMayBeStatic
+def get_soup(url: str) -> BeautifulSoup:
+    response = requests.get(url)
+    page = response.content
+    soup = BeautifulSoup(page, "html.parser")
+    return soup
+
+
 class DishSaver(CsrfFreeView):
     def post(self, request, *args, **kwargs):
         form = UrlForm(request.POST or None)
         if form.is_valid():
             url = form.cleaned_data['url']
-            response = requests.get(url)
-            page = response.content
-            soup = BeautifulSoup(page, "html.parser")
+            soup = get_soup(url)
 
             result = soup.title
             return HttpResponse(result)
@@ -32,7 +39,6 @@ class DishSaver(CsrfFreeView):
         return HttpResponseBadRequest()
 
 
-# noinspection PyMethodMayBeStatic
 class Crawler(View):
     def get(self, request, *args, **kwargs):
         form = UrlsForm()
@@ -41,7 +47,18 @@ class Crawler(View):
     def post(self, request, *args, **kwargs):
         form = UrlsForm(request.POST)
         if form.is_valid():
-            return render(request, 'detail.html', context={'urls': form.urls()})
+            # titles = [parse_dish(url) for url in form.urls() if url.strip()]
+            titles = set(urlparse(url).hostname for url in form.urls() if url.strip())
+            return render(request, 'detail.html', context={'titles': titles})
+
+
+def parse_dish(url):
+    hostname = urlparse(url).hostname
+    if not hostname:
+        return
+    soup = get_soup(url)
+    mapper = MAPPING.get(hostname=hostname)
+    return {m: soup.select(selector) for m, selector in mapper.items()}
 
 
 def create_dish(html):
