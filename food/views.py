@@ -2,9 +2,12 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls.base import reverse
 from django.views import generic as g
+from django.views.generic.edit import FormView
 
 import food.models as f
 from food.forms import forms
+# from food.upload_ingredient import create_ingredients
+from utils.forms import UploadFileForm
 
 
 class DishesView(g.ListView):
@@ -38,3 +41,20 @@ class DishCreate(g.View):
             dish = form.save(request.user)
             return HttpResponseRedirect(reverse('food:dish', kwargs=dict(pk=dish.pk)))
         return render(request, 'dish/form.html', context={'form': form})
+
+
+class IngredientsView(FormView):
+    form_class = UploadFileForm
+    template_name = 'upload_file_form.html'
+    success_url = 'admin:index'
+
+    def post(self, request, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        files = request.FILES.getlist('file_field')
+        if form.is_valid():
+            for f in files:
+                print(f)
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)

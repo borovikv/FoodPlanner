@@ -5,7 +5,7 @@ import food.models as food
 
 path = '/Users/vborovic/Downloads/пищевая ценность продуктов - Лист1.csv'
 
-gr = food.Unit.objects.get_or_create(title='gramm', grams=1.0)[0]
+gr = food.Unit.objects.get_or_create(title='g')[0]
 
 
 def get_title(key):
@@ -20,8 +20,8 @@ def get_unit(key):
         return food.Unit.objects.get_or_create(title='mg', grams=0.001)[0]
 
 
-def main():
-    with open(path) as csv_file:
+def create_ingredients(f):
+    with open(f) as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:
             ingredient = food.Ingredient()
@@ -49,6 +49,3 @@ def get_float(row, t):
         return float(row[t].replace(',', '.'))
     except:
         return None
-
-
-main()

@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<h1>{% trans "Add file" %}</h1>
+{% include 'form_template.html' with ok_button="Save" action="." %}
+{% endblock %}

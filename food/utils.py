@@ -2,13 +2,13 @@ import re
 from typing import List, Tuple
 
 UNITS = [
-    r'ст л', r'ст', r'гр', r'г\b', r'зубчик', r'шт', r'мл', r'кусоч',
-    r'litre', r'\bl\b', r'ml', r'fl oz', r'stick', r'g\b', r'oz', r'pints',
+    r'ст л\b', r'ст\b', r'гр', r'г\b', r'зубчик', r'щепотка', r'шт\b', r'мл\b', r'кусоч',
+    r'litre', r'\bl\b', r'ml\b', r'fl oz', r'stick', r'g\b', r'oz\b', r'pints',
 ]
 
 
 def wrap(u):
-    return ' '.join(f'{p}\.?' for p in u.split())
+    return '\s+'.join(f'{p}\.?' for p in u.split())
 
 
 UNIT_PATTERN = re.compile(r'(?P<unit>' + '|'.join([wrap(u) for u in UNITS]) + ')')
@@ -59,15 +59,6 @@ def get_ingredient_amount(line: str, units) -> List[Tuple[str, str]] or List[Tup
         if len(units) == len(amounts):
             return list(zip(amounts, units))
         else:
-            # r = []
-            # for u in units:
-            #     tmp = []
-            #     for a in reversed(amounts):
-            #         if ''.join(tmp) + a + u in ln:
-            #             tmp.insert(0, a)
-            #     r.append((tmp, u))
-            # if 'зубчик' in units:
-            #     print(amounts, r)
             return [(amounts, units[0])]
 
 
@@ -78,8 +69,8 @@ def get_ingredient_unit(line: str) -> List[str]:
 def dict_to_ingredients(d: dict) -> List[str]:
     items = sorted(d.items(), key=lambda ingredient: ingredient[1]['order'])
     result = []
-    for title, d in items:
-        t = [amounts_to_str(a) for a in d['amount']]
+    for title, amount_dict in items:
+        t = [amounts_to_str(a) for a in amount_dict['amount']]
         result.append(' '.join([title, '/'.join(t)]).strip())
     return result
 
@@ -87,7 +78,6 @@ def dict_to_ingredients(d: dict) -> List[str]:
 def amounts_to_str(amounts: list) -> (str, str):
     if not amounts:
         return ''
-
-    a = '-'.join(amounts[0]) if isinstance(amounts[0], tuple) else amounts[0]
+    a = '-'.join(amounts[0]) if type(amounts[0]) in (list, tuple) else amounts[0]
 
     return f'{a} {amounts[1]}'.strip()
