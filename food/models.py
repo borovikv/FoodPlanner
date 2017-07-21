@@ -76,6 +76,7 @@ class Nutrient(models.Model):
     MICRO = 'micro'
     ENERGY = 'energy'
     TYPE_ORDER = [ENERGY, MACRO, MICRO]
+    TYPE_TO_UNIT = {MACRO: Unit.GR, MICRO: Unit.MG, ENERGY: Unit.KCAL}
 
     title = models.CharField(max_length=128, choices=[(e, e) for e in OPTIONS], unique=True)
     type = models.CharField(max_length=10, choices=((MACRO, MACRO), (MICRO, MICRO), (ENERGY, ENERGY),))
@@ -102,11 +103,7 @@ class Nutrient(models.Model):
         return self.default_unit_title() == unit.title
 
     def default_unit_title(self):
-        return {
-            Nutrient.MACRO: Unit.GR,
-            Nutrient.MICRO: Unit.MG,
-            Nutrient.ENERGY: Unit.KCAL
-        }[self.type]
+        return self.TYPE_TO_UNIT[self.type]
 
 
 class Meal(models.Model):
@@ -220,7 +217,7 @@ class Ingredient(models.Model):
 class IngredientNutrient(models.Model):
     ingredient = models.ForeignKey(Ingredient, related_name='nutrients')
     nutrient = models.ForeignKey(Nutrient)
-    amount_per_100_gr = models.FloatField(default=0)
+    amount_per_100_gr = models.FloatField(default=0, null=True, blank=True)
     unit = models.ForeignKey(Unit)
 
     def __str__(self):

@@ -3,5 +3,11 @@
 
 {% block content %}
 <h1>{% trans "Add file" %}</h1>
-{% include 'form_template.html' with ok_button="Save" action="." %}
+<form action="." method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <ul>
+        {{ form.as_ul }}
+    </ul>
+    <button type="submit">OK</button>
+</form>
 {% endblock %}

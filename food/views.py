@@ -1,3 +1,4 @@
+import io
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls.base import reverse
@@ -6,7 +7,7 @@ from django.views.generic.edit import FormView
 
 import food.models as f
 from food.forms import forms
-# from food.upload_ingredient import create_ingredients
+from food.upload_ingredient import create_ingredients, MAPPING
 from utils.forms import UploadFileForm
 
 
@@ -46,15 +47,17 @@ class DishCreate(g.View):
 class IngredientsView(FormView):
     form_class = UploadFileForm
     template_name = 'upload_file_form.html'
-    success_url = 'admin:index'
+    success_url = '/admin'
 
     def post(self, request, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        files = request.FILES.getlist('file_field')
+
         if form.is_valid():
-            for f in files:
-                print(f)
+            file = request.FILES['file']
+            decoded_file = file.read().decode('utf-8')
+            io_string = io.StringIO(decoded_file)
+            create_ingredients(io_string, MAPPING)
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
