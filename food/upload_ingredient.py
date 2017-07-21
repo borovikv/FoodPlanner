@@ -36,6 +36,8 @@ def create_ingredient(row, mapping):
 
         nutrient = get_or_create_nutrient(key, mapping)
 
+        if ingredient.nutrients.filter(nutrient=nutrient).exists():
+            continue
         food.IngredientNutrient.objects.create(
             ingredient=ingredient,
             nutrient=nutrient,
